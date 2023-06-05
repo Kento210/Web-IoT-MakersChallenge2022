@@ -6,11 +6,11 @@ import sys
 import OpenAI
 import jtalk
 
-TOKEN = ""# beebotteのChannelTokenを指定
+TOKEN = "" # beebotteのChannelTokenを指定
 HOSTNAME = "mqtt.beebotte.com" # 認証鍵
 PORT = 8883
 TOPIC = ""
-CACERT = "mqtt.beebotte.com.pem"  # DLしたmqtt.beebotte.com.pemのパス指定
+CACERT = "mqtt.beebotte.com.pem"  # mqtt.beebotte.com.pemのパス指定
 
 def on_connect(client, userdata, flags, respons_code):
     print('status {0}'.format(respons_code))
@@ -18,6 +18,7 @@ def on_connect(client, userdata, flags, respons_code):
 
 play_thread = None
 
+# ON, OFF時の動作
 def on_message(client, userdata, msg):
 	data = json.loads(msg.payload.decode("utf-8"))["data"][0]
 	cmd = data["comand"]

@@ -2,8 +2,8 @@ import os
 import azure.cognitiveservices.speech as speechsdk
 
 def recognize_from_microphone():
-    # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
-    # azureのAPIキー及びリージョン
+    
+    # azureのAPIキー及びリージョンを入力
     SPEECH_KEY = ""
     SPEECH_REGION = "japanwest" # 日本
     
@@ -20,5 +20,6 @@ def recognize_from_microphone():
         text = speech_recognition_result.text
         return text
  
+# for debug
 if __name__ == "__main__": 
 	print(recognize_from_microphone())

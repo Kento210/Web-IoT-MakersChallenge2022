@@ -8,10 +8,12 @@ import RPi.GPIO as GPIO
 import subprocess
 import vlc
 import datetime
-  
+
 def openai_Talk():
     inputtext = azure_speech.recognize_from_microphone()
     time.sleep(1)
+
+    # おまけ機能1-電話機能 
     if "電話をかけて" in inputtext:
         print("私：" + inputtext)
         print("電話をかけるため、電話アプリを起動します")
@@ -24,6 +26,7 @@ def openai_Talk():
         time.sleep(10)
         GPIO.cleanup(gpio_pin7)
     
+    # おまけ機能2-BGM機能
     elif "BGMをかけて" in inputtext:
         print("私：" + inputtext)
         print("BGMを起動します")
@@ -43,6 +46,7 @@ def openai_Talk():
         player.stop()
         GPIO.cleanup(gpio_pin6)
 
+    # おまけ機能3-時報機能
     elif "時刻を教えて" in inputtext:
         print("私：" + inputtext)
         print("現在の時刻：")
@@ -51,9 +55,9 @@ def openai_Talk():
         dt_now = datetime.datetime.now()
         now_time_j = dt_now.strftime('%Y年%m月%d日 %H時%M分%S秒')
         print(now_time_j)
-        # 2019年02月04日 21:04:15
         jtalk.jtalk(now_time_j + "です。")
 
+    # おまけ機能4-けんか機能
     elif "ばか" in inputtext or "バカ" in inputtext or "馬鹿" in inputtext:
         print("私：" + inputtext)
         print("デモ中")
@@ -70,32 +74,44 @@ def openai_Talk():
 
 def openai_Talk_mein(inputtext):
     print("私：" + inputtext)
-    API_KEY = "" # OpenAIのAPIキーを指定
+    API_KEY = "" # OpenAIのAPIキーを入力
     openai.api_key = API_KEY
+
+    # 記憶(log)をまず参照
     f  = open('talk.log', 'r')
     Log = f.read()
     f.close()
     prompt ='''
 私：{}
 AI：'''.format(inputtext)
+    
+    # 翻訳に記憶と入力された言葉を受け渡す
     Intext_ja = Log + prompt
     Intext_en =  DeepL_Ja_En.DeepL_ja_en(Intext_ja).text
+
+    # ChatGPT APIのresponse設定 (davinci-003を使用)
     response = openai.Completion.create(
         engine='text-davinci-003',
         prompt=Intext_en,
         max_tokens=200,
         temperature=0.5,
-        stop="\n")
+        stop="\n") # これが無いと上限までresponseが返ってくる
     Restext_en = response['choices'][0]['text']
     Restext_ja = DeepL_En_Ja.DeepL_en_ja(Restext_en).text
     print("メイ:" + Restext_ja)
     newLog = Intext_ja + Restext_ja
+
+    # 記憶として質問と応答を記憶
     f = open('talk.log', 'w')
     f.write(newLog)
     f.close()
     
+    # jtalkを使用してresponseを音声出力
     jtalk.jtalk(Restext_ja)
+
+    # LEDとサーボモーター部分の制御に受け渡し
     digitClassifier(Restext_ja)
+
 
 def digitClassifier(Restext_ja):
     text = Restext_ja
@@ -116,8 +132,6 @@ def digitClassifier(Restext_ja):
     #index = text.rfind("自信")
     #place = index + 3
     #zishin = int(text[place])
-
-    #print(yorokobi+ikari+kanashimi)
 
     # GPIO処理
     # GPIOの使用する番号を代入
@@ -172,6 +186,6 @@ def digitClassifier(Restext_ja):
     GPIO.cleanup(gpio_pin3)
     GPIO.cleanup(gpio_pin4)
 
-
+# for debug
 if __name__ == "__main__":
 	openai_Talk()
